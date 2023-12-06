@@ -1,6 +1,6 @@
-package com.example.springsecurity.student.controller;
+package com.example.springsecurity.controller;
 
-import com.example.springsecurity.student.model.Student;
+import com.example.springsecurity.model.Student;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
