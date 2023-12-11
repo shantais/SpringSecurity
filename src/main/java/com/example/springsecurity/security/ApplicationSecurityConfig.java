@@ -15,6 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import java.util.concurrent.TimeUnit;
 
 import static com.example.springsecurity.security.ApplicationUserRole.*;
 
@@ -32,22 +35,33 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .and()
-//                .csrf().disable()// spring domyślnie zabezpiecza api przed dostępem, teraz musimy wyłączyć
+                .csrf().disable()
                 .authorizeRequests() // deklarujemy że zadania muszą byc autoryzowane
                 .antMatchers("/", "index") // część naszej białej listy
                 .permitAll()// kolejna część białej listy
                 .antMatchers("/api/**").hasRole(STUDENT.name())
-//                .antMatchers("management/api/**").hasAnyRole(ADMIN.name(), ADMINTRAINEE.name())
-//                .antMatchers(HttpMethod.GET, "management/api/**").hasAnyAuthority(ApplicationUserPermission.COURSE_READ.getPermission())
-//                .antMatchers(HttpMethod.PUT, "management/api/**").hasAnyAuthority(ApplicationUserPermission.COURSE_WRITE.getPermission())
-//                .antMatchers(HttpMethod.POST, "management/api/**").hasAnyAuthority(ApplicationUserPermission.COURSE_WRITE.getPermission())
-//                .antMatchers(HttpMethod.DELETE, "management/api/**").hasAnyRole(ADMIN.name())
                 .anyRequest() // deklarujemy że każde zadanie
                 .authenticated() // musi przejść autentykację (klient podaje użytkownika i hasło)
                 .and()
-                .httpBasic(); // używamy podstawowej autentykacji
+                .formLogin()
+                .loginPage("/login")
+                .permitAll()
+                .defaultSuccessUrl("/courses", true)
+                .passwordParameter("password1")
+                .usernameParameter("username")// jeśli chcemy użyć innej nazwy niz pliku html
+                .and()
+                .rememberMe() // domyślnie działa przez 30 minut braku aktywności
+                .tokenValiditySeconds((int)TimeUnit.DAYS.toSeconds(21))
+                .key("jakiskluczdoszyfrowania") // klucz do szyfrowania przez MD5 dla zawartości, czyli 'username', 'expirationDate'
+                .rememberMeParameter("remember-me")
+                .and()
+                .logout()
+                .logoutUrl("/logout")
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+                .clearAuthentication(true)
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "remember-me")
+                .logoutSuccessUrl("/login");
     }
 
     @Override
