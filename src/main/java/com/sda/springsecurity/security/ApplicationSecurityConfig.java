@@ -15,5 +15,6 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated() // musi przejść authentykację (user i password)
                 .and()
                 .httpBasic(); // uzywamy podstawowej authentykacji
+        // BasicAuth nie ma wylogowania
     }
 }
